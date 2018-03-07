@@ -1,2 +1,2 @@
-# software.hsharp.idempiere.api
-H# iDempiere REST API
+# H# iDempiere REST API (software.hsharp.idempiere.api)
+
