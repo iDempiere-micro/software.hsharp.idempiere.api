@@ -1,0 +1,11 @@
+dependencies {
+    // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.4'
+
+    compile project(':software.hsharp.api.helpers')
+    compile files('../software.hsharp.api.helpers/bin')
+    compile project(':org.adempiere.base')
+    compile files('../org.adempiere.base/bin')
+    compile project(':org.compiere.db.postgresql.provider')
+    compile files('../org.compiere.db.postgresql.provider/bin')
+}
