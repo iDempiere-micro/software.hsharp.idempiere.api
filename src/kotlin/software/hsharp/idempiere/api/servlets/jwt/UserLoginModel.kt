@@ -1,17 +1,19 @@
 package software.hsharp.idempiere.api.servlets.jwt
 
 import org.idempiere.common.util.KeyNamePair
+import software.hsharp.api.helpers.jwt.ILogin
+import software.hsharp.api.helpers.jwt.ILoginResponse
 import software.hsharp.api.helpers.jwt.IUserLoginModel
 
 data class UserLoginModel(
-		val userName: String,
-		val password: String,
+		override val loginName: String,
+		override val password: String,
 		val clientId : Int,
 		val roleId : Int,
 		val orgId : Int,
 		val warehouseId : Int,
 		val language : String )
-	: IUserLoginModel {
+	: IUserLoginModel, ILogin {
     constructor() : this("", 
                          "",
                          0, //System ClientId = 0
@@ -31,14 +33,13 @@ data class UserLoginModel(
 }
 
 data class UserLoginModelResponse(
-		val logged : Boolean,
+		override val logged : Boolean,
 		val clients : Array<KeyNamePair>,
 		val roles : Array<KeyNamePair>?,
 		val orgs :  Array<KeyNamePair>?,
 		val warehouses :  Array<KeyNamePair>?,
-		val token : String?
-)
-{
+		override val token : String?
+) : ILoginResponse {
     constructor() : this(
 			false,
 			Array<KeyNamePair>(0, { _ -> KeyNamePair(0,"dummy") } ),

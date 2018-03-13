@@ -1,10 +1,15 @@
 package software.hsharp.idempiere.api.servlets.jwt
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.compiere.Adempiere
 import org.compiere.model.MUser
 import org.compiere.util.Login
 import org.idempiere.common.exceptions.AdempiereException
 import org.idempiere.common.util.*
+import org.osgi.service.component.annotations.Component
+import org.osgi.service.component.annotations.Reference
+import software.hsharp.api.helpers.jwt.*
+import software.hsharp.api.icommon.IDatabase
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.SQLException
@@ -13,7 +18,30 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.logging.Level
 
-class LoginManager {
+@Component
+class LoginServiceRegisterHolder {
+	companion object {
+	    var LoginServiceRegister: ILoginServiceRegister? = null
+		var loginManager : LoginManager = LoginManager()
+	}
+
+	@Reference
+	fun setDatabase(loginServiceRegister: ILoginServiceRegister) {
+		LoginServiceRegister = loginServiceRegister
+		loginServiceRegister.registerLoginService( loginManager )
+	}
+
+}
+
+class LoginManager : ILoginService {
+	override val uniqueKey: String
+		get() = LOGIN_MANAGER_UNIQUE_KEY
+
+	override fun login(login: ILogin): ILoginResponse {
+		return doLogin( login )
+	}
+
+	val LOGIN_MANAGER_UNIQUE_KEY  = "software.hsharp.idempiere.api.servlets.jwt.LoginManager"
 	val AUTH_HEADER_KEY = "Authorization"
 	val AUTH_HEADER_VALUE_PREFIX = "Bearer " // with trailing space to separate token
 
@@ -127,7 +155,101 @@ class LoginManager {
 		return true
 	}
 
-	fun doLogin( login : UserLoginModel ) : UserLoginModelResponse {		
+    fun doLogin( login : ILogin ) : UserLoginModelResponse {
+        Adempiere.getI().startup(false)
+
+        val mapper = ObjectMapper()
+        val ctx = Env.getCtx()
+        val loginUtil = Login(ctx)
+
+        // HACK - this is needed before calling the list of clients, because the user will be logged in
+        // HACK - and the information about the login success or failure need to be saved to the DB
+        ctx.setProperty(Env.AD_CLIENT_ID, "0" )
+        Env.setContext(ctx, Env.AD_CLIENT_ID, "0" )
+
+        val clients = loginUtil.getClients(login.loginName, login.password)
+        if (clients == null) {
+            throw AdempiereException("Error login - User invalid")
+        }
+
+        val selectedClientIndex = clients.indexOfFirst { clients.count() == 1 }
+
+        val roles =
+                if (selectedClientIndex == -1 ) {
+                    null
+                } else {
+                    val clientId = clients[selectedClientIndex].id
+                    ctx.setProperty(Env.AD_CLIENT_ID, clientId )
+                    Env.setContext(ctx, Env.AD_CLIENT_ID, clientId )
+                    loginUtil.getRoles(login.loginName, clients[selectedClientIndex] );
+                }
+
+        val user = MUser.get (ctx, login.loginName);
+        if (user != null) {
+            Env.setContext(ctx, Env.AD_USER_ID, user.getAD_User_ID() )
+            Env.setContext(ctx, "#AD_User_Name", user.getName() )
+            Env.setContext(ctx, "#SalesRep_ID", user.getAD_User_ID() )
+        }
+
+        val selectedRoleIndex =
+                if (roles==null) { -1 }
+                else { roles.indexOfFirst { roles.count() == 1 } }
+
+        // orgs
+        val orgs =
+                if (selectedRoleIndex == -1 ) {
+                    null
+                } else {
+                    loginUtil.getOrgs( roles!![selectedRoleIndex] );
+                }
+
+        val selectedOrgIndex =
+                if (orgs==null) { -1 }
+                else { orgs.indexOfFirst { orgs.count() == 1 } }
+
+        // warehouses
+        val warehouses =
+                if (selectedOrgIndex == -1 ) {
+                    null
+                } else {
+                    loginUtil.getWarehouses( orgs!![selectedOrgIndex] );
+                }
+
+        val selectedWarehouseIndex =
+                if (warehouses==null) { -1 }
+                else { warehouses.indexOfFirst { warehouses.count() == 1  } }
+
+        val AD_User_ID = Env.getAD_User_ID(ctx)
+
+        val logged =
+                ( selectedWarehouseIndex != -1 ) &&
+                        ( selectedOrgIndex != -1 ) &&
+                        ( selectedRoleIndex != -1 ) &&
+                        ( selectedClientIndex != -1 ) &&
+                        login(
+                                ctx,
+                                AD_User_ID,
+                                roles!![selectedRoleIndex].key,
+                                clients[selectedClientIndex].key,
+                                orgs!![selectedOrgIndex].key,
+                                warehouses!![selectedWarehouseIndex].key,
+                                "en_US" )
+
+        val result = UserLoginModelResponse( logged, clients, roles, orgs, warehouses, null )
+
+        //System.out.println( "****** LoginManager:" + result.toString() );
+
+        if (result.logged) {
+            val token = JwtManager.createToken( AD_User_ID.toString(), "", mapper.writeValueAsString(login) )
+            return result.copy(token=token)
+        } else {
+            return result
+        }
+    }
+
+	fun doLogin( login : UserLoginModel ) : UserLoginModelResponse {
+        Adempiere.getI().startup(false)
+
 		val mapper = ObjectMapper()
 		val ctx = Env.getCtx()
 		val loginUtil = Login(ctx)
@@ -137,7 +259,7 @@ class LoginManager {
 		ctx.setProperty(Env.AD_CLIENT_ID, "" + login.clientId)
        	Env.setContext(ctx, Env.AD_CLIENT_ID, "" + login.clientId)
 		
-		val clients = loginUtil.getClients(login.userName, login.password)
+		val clients = loginUtil.getClients(login.loginName, login.password)
 		if (clients == null) {
 			throw AdempiereException("Error login - User invalid")
 		}
@@ -151,10 +273,10 @@ class LoginManager {
 					val clientId = clients[selectedClientIndex].id
 					ctx.setProperty(Env.AD_CLIENT_ID, clientId )
 			       	Env.setContext(ctx, Env.AD_CLIENT_ID, clientId )
-					loginUtil.getRoles(login.userName, clients[selectedClientIndex] );
+					loginUtil.getRoles(login.loginName, clients[selectedClientIndex] );
 				}		
 		
-    	val user = MUser.get (ctx, login.userName);
+    	val user = MUser.get (ctx, login.loginName);
     	if (user != null) {
     		Env.setContext(ctx, Env.AD_USER_ID, user.getAD_User_ID() )
     		Env.setContext(ctx, "#AD_User_Name", user.getName() )
