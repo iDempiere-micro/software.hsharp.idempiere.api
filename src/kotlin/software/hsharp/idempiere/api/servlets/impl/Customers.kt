@@ -4,9 +4,7 @@ import software.hsharp.business.core.Customers
 import software.hsharp.business.models.ICategory
 import software.hsharp.business.models.ICustomer
 import software.hsharp.business.services.ICustomers
-import javax.ws.rs.GET
-import javax.ws.rs.Path
-import javax.ws.rs.Produces
+import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
 
 interface ICustomersApi : ICustomers
@@ -22,11 +20,18 @@ class CustomersEndpoint : ICustomersApi {
         return customers.getAllCustomers()
     }
 
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{id}")
     override fun getCustomerById(id: Int): ICustomer {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        return customers.getCustomerById( id )
     }
 
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("{id}")
     override fun getCustomersByAnyCategory(categories: Array<ICategory>): Array<ICustomer> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        return customers.getCustomersByAnyCategory( categories )
     }
 }
