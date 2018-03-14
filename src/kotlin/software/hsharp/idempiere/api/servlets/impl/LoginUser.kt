@@ -59,8 +59,8 @@ class LoginUser {
 
 
     @POST
-    @Produces("application/json")
-	@Consumes("application/x-www-form-urlencoded")
+    @Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     fun login2(
 		@FormParam("username") username : String,
 		@FormParam("password") password : String

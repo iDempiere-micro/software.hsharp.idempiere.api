@@ -8,4 +8,8 @@ dependencies {
     compile files('../org.adempiere.base/bin')
     compile project(':org.compiere.db.postgresql.provider')
     compile files('../org.compiere.db.postgresql.provider/bin')
+    compile project(':software.hsharp.business.models')
+    compile files('../software.hsharp.business.models/bin')
+    compile project(':software.hsharp.business.core')
+    compile files('../software.hsharp.business.core/bin')
 }
