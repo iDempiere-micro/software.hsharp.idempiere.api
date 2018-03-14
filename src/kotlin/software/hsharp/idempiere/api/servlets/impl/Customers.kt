@@ -23,14 +23,14 @@ class CustomersEndpoint : ICustomersApi {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}")
-    override fun getCustomerById(id: Int): ICustomer {
+    override fun getCustomerById(@PathParam("id") id: Int): ICustomer? {
         return customers.getCustomerById( id )
     }
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Path("{id}")
+    @Path("search")
     override fun getCustomersByAnyCategory(categories: Array<ICategory>): Array<ICustomer> {
         return customers.getCustomersByAnyCategory( categories )
     }
