@@ -240,7 +240,8 @@ class LoginManager : ILoginService {
         //System.out.println( "****** LoginManager:" + result.toString() );
 
         if (result.logged) {
-            val token = JwtManager.createToken( AD_User_ID.toString(), "", mapper.writeValueAsString(login) )
+			val realLogin : UserLoginModel = UserLoginModel( login.loginName, login.password )
+            val token = JwtManager.createToken( AD_User_ID.toString(), "", mapper.writeValueAsString(realLogin) )
             return result.copy(token=token)
         } else {
             return result
