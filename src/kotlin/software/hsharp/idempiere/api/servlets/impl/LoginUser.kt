@@ -28,8 +28,8 @@ class LoginUser {
 		val userLoginModel = UserLoginModel(username, password)
 
 		val result = loginManager.doLogin( userLoginModel )
-		val AD_User_ID = Env.getAD_User_ID(Env.getCtx())
 		if (result.logged) {
+			val AD_User_ID = Env.getAD_User_ID(Env.getCtx())
 			val token = JwtManager.createToken( AD_User_ID.toString(), "", mapper.writeValueAsString(userLoginModel) )
 			return result.copy(token=token)
 		} else {

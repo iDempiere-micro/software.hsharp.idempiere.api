@@ -261,7 +261,7 @@ class LoginManager : ILoginService {
 		
 		val clients = loginUtil.getClients(login.loginName, login.password)
 		if (clients == null) {
-			throw AdempiereException("Error login - User invalid")
+			return UserLoginModelResponse()
 		}
 		
 		val selectedClientIndex = clients.indexOfFirst { it.key == login.clientId || clients.count() == 1 }
