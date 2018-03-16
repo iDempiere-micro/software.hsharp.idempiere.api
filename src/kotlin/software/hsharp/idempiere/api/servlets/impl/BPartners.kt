@@ -5,7 +5,9 @@ import org.idempiere.common.util.DB
 import org.idempiere.common.util.Env
 import software.hsharp.business.core.BusinessPartners
 import software.hsharp.business.models.IBusinessPartner
+import software.hsharp.business.services.IBusinessPartnerResult
 import software.hsharp.business.services.IBusinessPartners
+import software.hsharp.business.services.IBusinessPartnersResult
 import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
 
@@ -19,14 +21,14 @@ class BPartners : IBusinessPartnersApi {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("all")
-    override fun getAllBusinessPartners() : Array<IBusinessPartner> {
+    override fun getAllBusinessPartners() : IBusinessPartnersResult {
         return bPartners.getAllBusinessPartners()
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}")
-    override fun getBusinessPartnerById( @PathParam("id") id : Int ) : IBusinessPartner? {
+    override fun getBusinessPartnerById( @PathParam("id") id : Int ) : IBusinessPartnerResult {
         return bPartners.getBusinessPartnerById( id )
     }
 }
