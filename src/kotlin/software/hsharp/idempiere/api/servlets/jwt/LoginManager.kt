@@ -98,8 +98,6 @@ class LoginManager : ILoginService {
 			e.printStackTrace()
 		} finally {
 			DB.close(rs, pstmt)
-			rs = null
-			pstmt = null
 		}
 
 		//  not verified
@@ -134,8 +132,7 @@ class LoginManager : ILoginService {
 	fun login(ctx: Properties, AD_User_ID: Int, AD_Role_ID: Int, AD_Client_ID: Int, AD_Org_ID: Int, M_Warehouse_ID: Int, Lang: String): Boolean {
 		val loginInfoFull = checkLogin(ctx, AD_User_ID, AD_Role_ID, AD_Client_ID, AD_Org_ID, M_Warehouse_ID)
 				?: return false
-		val loginInfo = loginInfoFull!!.getName()
-		val c_bpartner_id = loginInfoFull!!.getKey()
+		val c_bpartner_id = loginInfoFull.key
 
 		Env.setContext(ctx, "#AD_Language", Lang)
 		val m_language = Language.getLanguage(Lang)
@@ -158,7 +155,7 @@ class LoginManager : ILoginService {
     fun doLogin( login : ILogin ) : UserLoginModelResponse {
         Adempiere.getI().startup(false)
 
-        val mapper = ObjectMapper()
+        //val mapper = ObjectMapper()
         val ctx = Env.getCtx()
         val loginUtil = Login(ctx)
 
@@ -250,7 +247,6 @@ class LoginManager : ILoginService {
 	fun doLogin( login : UserLoginModel ) : UserLoginModelResponse {
         Adempiere.getI().startup(false)
 
-		val mapper = ObjectMapper()
 		val ctx = Env.getCtx()
 		val loginUtil = Login(ctx)
 		
