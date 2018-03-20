@@ -1,32 +1,32 @@
 package software.hsharp.idempiere.api.servlets.impl
 
-import software.hsharp.business.core.Customers
+import org.osgi.service.component.annotations.Component
+import org.osgi.service.component.annotations.Reference
+import software.hsharp.api.icommon.IDatabase
 import software.hsharp.business.models.ICategory
 import software.hsharp.business.models.ICustomer
 import software.hsharp.business.services.ICustomerResult
-import software.hsharp.business.services.ICustomers
+import software.hsharp.business.services.ICustomersEndpoint
 import software.hsharp.business.services.ICustomersResult
+import software.hsharp.idempiere.api.servlets.services.CustomerService
 import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
 
-interface ICustomersApi : ICustomers
-
 @Path("customers")
-class CustomersEndpoint : ICustomersApi {
-    val customers : ICustomers = Customers()
+class Customers : ICustomersEndpoint {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("all")
     override fun getAllCustomers(): ICustomersResult {
-        return customers.getAllCustomers()
+        return CustomerService.customers.getAllCustomers()
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}")
     override fun getCustomerById(@PathParam("id") id: Int): ICustomerResult {
-        return customers.getCustomerById( id )
+        return CustomerService.customers.getCustomerById( id )
     }
 
     @POST
@@ -34,6 +34,6 @@ class CustomersEndpoint : ICustomersApi {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("search")
     override fun getCustomersByAnyCategory(categories: Array<ICategory>): ICustomersResult {
-        return customers.getCustomersByAnyCategory( categories )
+        return CustomerService.customers.getCustomersByAnyCategory( categories )
     }
 }
