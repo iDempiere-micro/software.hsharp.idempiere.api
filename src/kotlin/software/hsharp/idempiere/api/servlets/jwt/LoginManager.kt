@@ -185,7 +185,7 @@ class LoginManager : ILoginService {
 
         val user = UserService.userService.getUser(ctx, login.loginName)
         if (user != null) {
-            Env.setContext(ctx, Env.AD_USER_ID, user.Key /*.getAD_User_ID()*/ )
+            Env.setContext(ctx, Env.AD_USER_ID, user.Key )
             Env.setContext(ctx, "#AD_User_Name", user.name  )
             Env.setContext(ctx, "#SalesRep_ID", user.Key )
         }
