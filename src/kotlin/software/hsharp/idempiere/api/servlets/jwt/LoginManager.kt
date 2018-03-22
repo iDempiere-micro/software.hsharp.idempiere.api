@@ -2,7 +2,7 @@ package software.hsharp.idempiere.api.servlets.jwt
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.compiere.Adempiere
-import org.compiere.model.MUser
+import org.compiere.impl.MUser
 import org.compiere.util.Login
 import org.idempiere.common.exceptions.AdempiereException
 import org.idempiere.common.util.*
