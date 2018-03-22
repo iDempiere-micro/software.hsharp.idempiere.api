@@ -1,6 +1,5 @@
 package software.hsharp.idempiere.api;
 
-import org.compiere.Adempiere;
 import org.glassfish.jersey.internal.OsgiRegistry;
 import org.glassfish.jersey.internal.util.ReflectionHelper;
 import org.glassfish.jersey.server.ResourceConfig;

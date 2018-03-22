@@ -4,6 +4,7 @@ import org.idempiere.common.util.KeyNamePair
 import software.hsharp.api.helpers.jwt.ILogin
 import software.hsharp.api.helpers.jwt.ILoginResponse
 import software.hsharp.api.helpers.jwt.IUserLoginModel
+import software.hsharp.core.models.INameKeyPair
 
 data class UserLoginModel(
 		override val loginName: String,
@@ -34,15 +35,15 @@ data class UserLoginModel(
 
 data class UserLoginModelResponse(
 		override val logged : Boolean,
-		val clients : Array<KeyNamePair>,
-		val roles : Array<KeyNamePair>?,
-		val orgs :  Array<KeyNamePair>?,
-		val warehouses :  Array<KeyNamePair>?,
+		val clients : Array<INameKeyPair>,
+		val roles : Array<INameKeyPair>?,
+		val orgs :  Array<INameKeyPair>?,
+		val warehouses :  Array<INameKeyPair>?,
 		override val token : String?
 ) : ILoginResponse {
     constructor() : this(
 			false,
-			Array<KeyNamePair>(0, { _ -> KeyNamePair(0,"dummy") } ),
+			Array<INameKeyPair>(0, { _ -> KeyNamePair(0,"dummy") } ),
 			null,
 			null,
 			null,

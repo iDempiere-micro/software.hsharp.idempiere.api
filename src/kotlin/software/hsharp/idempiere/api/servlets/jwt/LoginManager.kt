@@ -1,15 +1,16 @@
 package software.hsharp.idempiere.api.servlets.jwt
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.compiere.Adempiere
-import org.compiere.impl.MUser
-import org.compiere.util.Login
+import org.compiere.model.I_AD_User
 import org.idempiere.common.exceptions.AdempiereException
 import org.idempiere.common.util.*
 import org.osgi.service.component.annotations.Component
 import org.osgi.service.component.annotations.Reference
 import software.hsharp.api.helpers.jwt.*
 import software.hsharp.api.icommon.IDatabase
+import software.hsharp.idempiere.api.servlets.services.LoginService
+import software.hsharp.idempiere.api.servlets.services.SystemService
+import software.hsharp.idempiere.api.servlets.services.UserService
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.SQLException
@@ -112,7 +113,7 @@ class LoginManager : ILoginService {
 		//
 		val date: Timestamp? = null
 		val printer: String? = null
-		val login = Login(ctx)
+		val login = LoginService.loginUtility.init(ctx)
 		login.loadPreferences(org, wh, date, printer)
 		//
 		return KeyNamePair(c_bpartner_id, loginInfo)
@@ -153,11 +154,11 @@ class LoginManager : ILoginService {
 	}
 
     fun doLogin( login : ILogin ) : UserLoginModelResponse {
-        Adempiere.getI().startup(false)
+		SystemService.system.startup()
 
         //val mapper = ObjectMapper()
         val ctx = Env.getCtx()
-        val loginUtil = Login(ctx)
+        val loginUtil = LoginService.loginUtility.init(ctx)
 
         // HACK - this is needed before calling the list of clients, because the user will be logged in
         // HACK - and the information about the login success or failure need to be saved to the DB
@@ -170,22 +171,23 @@ class LoginManager : ILoginService {
         }
 
         val selectedClientIndex = clients.indexOfFirst { clients.count() == 1 }
+		val selectedClientKey = clients[selectedClientIndex].Key
 
         val roles =
                 if (selectedClientIndex == -1 ) {
                     null
                 } else {
-                    val clientId = clients[selectedClientIndex].id
+                    val clientId = clients[selectedClientIndex].ID
                     ctx.setProperty(Env.AD_CLIENT_ID, clientId )
                     Env.setContext(ctx, Env.AD_CLIENT_ID, clientId )
-                    loginUtil.getRoles(login.loginName, clients[selectedClientIndex] );
+                    loginUtil.getRoles(login.loginName, clients[selectedClientIndex] )
                 }
 
-        val user = MUser.get (ctx, login.loginName);
+        val user = UserService.userService.getUser(ctx, login.loginName)
         if (user != null) {
-            Env.setContext(ctx, Env.AD_USER_ID, user.getAD_User_ID() )
-            Env.setContext(ctx, "#AD_User_Name", user.getName() )
-            Env.setContext(ctx, "#SalesRep_ID", user.getAD_User_ID() )
+            Env.setContext(ctx, Env.AD_USER_ID, user.Key /*.getAD_User_ID()*/ )
+            Env.setContext(ctx, "#AD_User_Name", user.name  )
+            Env.setContext(ctx, "#SalesRep_ID", user.Key )
         }
 
         val selectedRoleIndex =
@@ -226,10 +228,10 @@ class LoginManager : ILoginService {
                         login(
                                 ctx,
                                 AD_User_ID,
-                                roles!![selectedRoleIndex].key,
-                                clients[selectedClientIndex].key,
-                                orgs!![selectedOrgIndex].key,
-                                warehouses!![selectedWarehouseIndex].key,
+                                roles!![selectedRoleIndex].Key,
+								selectedClientKey,
+                                orgs!![selectedOrgIndex].Key,
+                                warehouses!![selectedWarehouseIndex].Key,
                                 "en_US" )
 
         val result = UserLoginModelResponse( logged, clients, roles, orgs, warehouses, null )
@@ -245,10 +247,10 @@ class LoginManager : ILoginService {
     }
 
 	fun doLogin( login : UserLoginModel ) : UserLoginModelResponse {
-        Adempiere.getI().startup(false)
+		SystemService.system.startup()
 
 		val ctx = Env.getCtx()
-		val loginUtil = Login(ctx)
+		val loginUtil = LoginService.loginUtility.init(ctx)
 		
 		// HACK - this is needed before calling the list of clients, because the user will be logged in
 		// HACK - and the information about the login success or failure need to be saved to the DB
@@ -260,28 +262,28 @@ class LoginManager : ILoginService {
 			return UserLoginModelResponse()
 		}
 		
-		val selectedClientIndex = clients.indexOfFirst { it.key == login.clientId || clients.count() == 1 }
+		val selectedClientIndex = clients.indexOfFirst { it.Key == login.clientId || clients.count() == 1 }
 
     	val roles =
     			if (selectedClientIndex == -1 ) {
 					null
 				} else {
-					val clientId = clients[selectedClientIndex].id
+					val clientId = clients[selectedClientIndex].ID
 					ctx.setProperty(Env.AD_CLIENT_ID, clientId )
 			       	Env.setContext(ctx, Env.AD_CLIENT_ID, clientId )
-					loginUtil.getRoles(login.loginName, clients[selectedClientIndex] );
+					loginUtil.getRoles(login.loginName, clients[selectedClientIndex] )
 				}		
 		
-    	val user = MUser.get (ctx, login.loginName);
+    	val user = UserService.userService.getUser(ctx, login.loginName)
     	if (user != null) {
-    		Env.setContext(ctx, Env.AD_USER_ID, user.getAD_User_ID() )
-    		Env.setContext(ctx, "#AD_User_Name", user.getName() )
-    		Env.setContext(ctx, "#SalesRep_ID", user.getAD_User_ID() )
+    		Env.setContext(ctx, Env.AD_USER_ID, user.ID )
+    		Env.setContext(ctx, "#AD_User_Name", user.name )
+    		Env.setContext(ctx, "#SalesRep_ID", user.ID )
     	}
 
 		val selectedRoleIndex =
 				if (roles==null) { -1 }
-				else { roles.indexOfFirst { it.key == login.roleId || roles.count() == 1 } }			
+				else { roles.indexOfFirst { it.Key == login.roleId || roles.count() == 1 } }
 					
 		// orgs
 		val orgs = 
@@ -293,7 +295,7 @@ class LoginManager : ILoginService {
 		
 		val selectedOrgIndex =
 				if (orgs==null) { -1 }
-				else { orgs.indexOfFirst { it.key == login.orgId || orgs.count() == 1 } }
+				else { orgs.indexOfFirst { it.Key == login.orgId || orgs.count() == 1 } }
 					
 		// warehouses
 		val warehouses = 
@@ -305,7 +307,7 @@ class LoginManager : ILoginService {
 		
 		val selectedWarehouseIndex =
 				if (warehouses==null) { -1 }
-				else { warehouses.indexOfFirst { it.key == login.warehouseId || warehouses.count() == 1  } }
+				else { warehouses.indexOfFirst { it.Key == login.warehouseId || warehouses.count() == 1  } }
 						
 		val AD_User_ID = Env.getAD_User_ID(ctx)
 				
@@ -317,10 +319,10 @@ class LoginManager : ILoginService {
 			login(
 					ctx,
 					AD_User_ID,
-					roles!![selectedRoleIndex].key,
-					clients[selectedClientIndex].key,
-					orgs!![selectedOrgIndex].key,
-					warehouses!![selectedWarehouseIndex].key,
+					roles!![selectedRoleIndex].Key,
+					clients[selectedClientIndex].Key,
+					orgs!![selectedOrgIndex].Key,
+					warehouses!![selectedWarehouseIndex].Key,
 					login.language )
 		
 		val result = UserLoginModelResponse( logged, clients, roles, orgs, warehouses, null )

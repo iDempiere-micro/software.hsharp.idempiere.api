@@ -1,7 +1,6 @@
 package software.hsharp.idempiere.api.servlets.impl
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.compiere.Adempiere
 import org.idempiere.common.util.Env
 import software.hsharp.api.helpers.jwt.JwtManager
 import software.hsharp.idempiere.api.servlets.Error
@@ -9,6 +8,7 @@ import software.hsharp.idempiere.api.servlets.Result
 import software.hsharp.idempiere.api.servlets.jwt.LoginManager
 import software.hsharp.idempiere.api.servlets.jwt.UserLoginModel
 import software.hsharp.idempiere.api.servlets.jwt.UserLoginModelResponse
+import software.hsharp.idempiere.api.servlets.services.SystemService
 import java.io.PrintWriter
 import java.io.StringWriter
 import javax.annotation.security.PermitAll
@@ -22,7 +22,7 @@ class LoginUser {
 	protected fun doLogin( username : String, password : String) : UserLoginModelResponse {
 		val mapper = ObjectMapper()
 
-		Adempiere.getI().startup(false)
+		SystemService.system.startup()
 
 		val loginManager = LoginManager()
 		val userLoginModel = UserLoginModel(username, password)
