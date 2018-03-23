@@ -27,14 +27,16 @@ class LoginServiceRegisterHolder {
 	}
 
 	@Reference
-	fun setDatabase(loginServiceRegister: ILoginServiceRegister) {
+	fun setLoginServiceRegister(loginServiceRegister: ILoginServiceRegister) {
 		LoginServiceRegister = loginServiceRegister
-		loginServiceRegister.registerLoginService( loginManager )
+		loginServiceRegister.registerService( loginManager )
 	}
 
 }
 
 class LoginManager : ILoginService {
+	override val name: String
+		get() = "iDempiere Login Service"
 	override val uniqueKey: String
 		get() = LOGIN_MANAGER_UNIQUE_KEY
 
