@@ -8,6 +8,8 @@ import javax.ws.rs.core.MediaType
 
 @Path("bpartners")
 class BPartners : IBusinessPartnersEndpoint {
+    override val name: String
+        get() = "Business Partners Endpoint"
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)

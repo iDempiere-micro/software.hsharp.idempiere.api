@@ -14,6 +14,8 @@ import javax.ws.rs.core.MediaType
 
 @Path("customers")
 class Customers : ICustomersEndpoint {
+    override val name: String
+        get() = "Customers EndPoint"
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
