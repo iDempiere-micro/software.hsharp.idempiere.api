@@ -70,28 +70,29 @@ class LoginManager : ILoginService {
 		var loginInfo: String? = null
 		var c_bpartner_id = -1
 		//  Verify existence of User/Client/Org/Role and User's access to Client & Org
-		val sql = ("SELECT u.Name || '@' || c.Name || '.' || o.Name AS Text, u.c_bpartner_id "
+		val sql = ("SELECT u.Name || '@' || c.Name || '.' || o.Name AS Text, u.c_bpartner_id, set_user(?) " //#1
 				+ "FROM AD_User u, AD_Client c, AD_Org o, AD_User_Roles ur "
-				+ "WHERE u.AD_User_ID=?"    //  #1
+				+ "WHERE u.AD_User_ID=?"    //  #2
 
-				+ " AND c.AD_Client_ID=?"   //  #2
+				+ " AND c.AD_Client_ID=?"   //  #3
 
-				+ " AND o.AD_Org_ID=?"      //  #3
+				+ " AND o.AD_Org_ID=?"      //  #4
 
-				+ " AND ur.AD_Role_ID=?"    //  #4
+				+ " AND ur.AD_Role_ID=?"    //  #5
 
 				+ " AND ur.AD_User_ID=u.AD_User_ID"
 				+ " AND (o.AD_Client_ID = 0 OR o.AD_Client_ID=c.AD_Client_ID)"
 				+ " AND c.AD_Client_ID IN (SELECT AD_Client_ID FROM AD_Role_OrgAccess ca WHERE ca.AD_Role_ID=ur.AD_Role_ID)"
-				+ " AND o.AD_Org_ID IN (SELECT AD_Org_ID FROM AD_Role_OrgAccess ca WHERE ca.AD_Role_ID=ur.AD_Role_ID)")
+				+ " AND o.AD_Org_ID IN (SELECT AD_Org_ID FROM AD_Role_OrgAccess ca WHERE ca.AD_Role_ID=ur.AD_Role_ID) ")
 		var pstmt: PreparedStatement? = null
 		var rs: ResultSet? = null
-		try {
+    	try {
 			pstmt = DB.prepareStatement(sql, null)
 			pstmt!!.setInt(1, AD_User_ID)
-			pstmt.setInt(2, AD_Client_ID)
-			pstmt.setInt(3, AD_Org_ID)
-			pstmt.setInt(4, AD_Role_ID)
+			pstmt.setInt(2, AD_User_ID)
+			pstmt.setInt(3, AD_Client_ID)
+			pstmt.setInt(4, AD_Org_ID)
+			pstmt.setInt(5, AD_Role_ID)
 			rs = pstmt.executeQuery()
 			if (rs!!.next()) {
 				loginInfo = rs.getString(1)
