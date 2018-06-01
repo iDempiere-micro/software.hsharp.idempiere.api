@@ -67,6 +67,7 @@ class LoginManager : ILoginService {
 	 */
 	private fun checkLogin(ctx: Properties, AD_User_ID: Int, AD_Role_ID: Int, AD_Client_ID: Int, AD_Org_ID: Int, M_Warehouse_ID: Int): KeyNamePair? {
 		//  Get Login Info
+    println( "!!!!! ---- checkLogin $AD_User_ID ----" )
 		var loginInfo: String? = null
 		var c_bpartner_id = -1
 		//  Verify existence of User/Client/Org/Role and User's access to Client & Org
@@ -156,101 +157,10 @@ class LoginManager : ILoginService {
 		return true
 	}
 
-    fun doLogin( login : ILogin ) : UserLoginModelResponse {
+	fun doLogin( login : ILogin ) : UserLoginModelResponse {
 		SystemService.system.startup()
 
-        //val mapper = ObjectMapper()
-        val ctx = Env.getCtx()
-        val loginUtil = LoginService.loginUtility.init(ctx)
-
-        // HACK - this is needed before calling the list of clients, because the user will be logged in
-        // HACK - and the information about the login success or failure need to be saved to the DB
-        ctx.setProperty(Env.AD_CLIENT_ID, "0" )
-        Env.setContext(ctx, Env.AD_CLIENT_ID, "0" )
-
-        val clients = loginUtil.getClients(login.loginName, login.password)
-        if (clients == null) {
-            throw AdempiereException("Error login - User invalid")
-        }
-
-        val selectedClientIndex = clients.indexOfFirst { clients.count() == 1 }
-		val selectedClientKey = clients[selectedClientIndex].Key
-
-        val roles =
-                if (selectedClientIndex == -1 ) {
-                    null
-                } else {
-                    val clientId = clients[selectedClientIndex].ID
-                    ctx.setProperty(Env.AD_CLIENT_ID, clientId )
-                    Env.setContext(ctx, Env.AD_CLIENT_ID, clientId )
-                    loginUtil.getRoles(login.loginName, clients[selectedClientIndex] )
-                }
-
-        val user = UserService.userService.getUser(ctx, login.loginName)
-        if (user != null) {
-            Env.setContext(ctx, Env.AD_USER_ID, user.Key )
-            Env.setContext(ctx, "#AD_User_Name", user.name  )
-            Env.setContext(ctx, "#SalesRep_ID", user.Key )
-        }
-
-        val selectedRoleIndex =
-                if (roles==null) { -1 }
-                else { roles.indexOfFirst { roles.count() == 1 } }
-
-        // orgs
-        val orgs =
-                if (selectedRoleIndex == -1 ) {
-                    null
-                } else {
-                    loginUtil.getOrgs( roles!![selectedRoleIndex] );
-                }
-
-        val selectedOrgIndex =
-                if (orgs==null) { -1 }
-                else { orgs.indexOfFirst { orgs.count() == 1 } }
-
-        // warehouses
-        val warehouses =
-                if (selectedOrgIndex == -1 ) {
-                    null
-                } else {
-                    loginUtil.getWarehouses( orgs!![selectedOrgIndex] );
-                }
-
-        val selectedWarehouseIndex =
-                if (warehouses==null) { -1 }
-                else { warehouses.indexOfFirst { warehouses.count() == 1  } }
-
-        val AD_User_ID = Env.getAD_User_ID(ctx)
-
-        val logged =
-                ( selectedWarehouseIndex != -1 ) &&
-                        ( selectedOrgIndex != -1 ) &&
-                        ( selectedRoleIndex != -1 ) &&
-                        ( selectedClientIndex != -1 ) &&
-                        login(
-                                ctx,
-                                AD_User_ID,
-                                roles!![selectedRoleIndex].Key,
-								selectedClientKey,
-                                orgs!![selectedOrgIndex].Key,
-                                warehouses!![selectedWarehouseIndex].Key,
-                                "en_US" )
-
-        val result = UserLoginModelResponse( logged, clients, roles, orgs, warehouses, null )
-
-        if (result.logged) {
-			//val realLogin : UserLoginModel = UserLoginModel( login.loginName, login.password )
-            val token = JwtManager.createToken( AD_User_ID.toString(), "",
-                    /*mapper.writeValueAsString(realLogin)*/ "{ \"loginName\":\"" + login.loginName + "\", \"password\":\"" + login.password + "\"}" )
-            return result.copy(token=token)
-        } else {
-            return result
-        }
-    }
-
-	fun doLogin( login : UserLoginModel ) : UserLoginModelResponse {
-		SystemService.system.startup()
+    	println( "****** 1 When logging to iDempiere got: $login" )
 
 		val ctx = Env.getCtx()
 		val loginUtil = LoginService.loginUtility.init(ctx)
@@ -313,7 +223,9 @@ class LoginManager : ILoginService {
 				else { warehouses.indexOfFirst { it.Key == login.warehouseId || warehouses.count() == 1  } }
 						
 		val AD_User_ID = Env.getAD_User_ID(ctx)
-				
+
+		println( "selectedWarehouseIndex:$selectedWarehouseIndex selectedOrgIndex:$selectedOrgIndex selectedRoleIndex:$selectedRoleIndex selectedClientIndex:$selectedClientIndex" )
+
 		val logged =
 			( selectedWarehouseIndex != -1 ) &&
 			( selectedOrgIndex != -1 ) &&
@@ -326,12 +238,19 @@ class LoginManager : ILoginService {
 					clients[selectedClientIndex].Key,
 					orgs!![selectedOrgIndex].Key,
 					warehouses!![selectedWarehouseIndex].Key,
-					login.language )
+					login.language!! )
 		
 		val result = UserLoginModelResponse( logged, clients, roles, orgs, warehouses, null )
-		
-		//System.out.println( "LoginManager:" + result.toString() );
-	
+		println( "iDempiere LoginManager intermediate result:$result" );
+
+		if (result.logged) {
+			val mapper = ObjectMapper()
+			val token = JwtManager.createToken( AD_User_ID.toString(), "",
+				mapper.writeValueAsString(login) //"{ \"loginName\":\"" + login.loginName + "\", \"password\":\"" + login.password + "\"}"
+			)
+			return result.copy(token=token)
+		}
+
 		return result
 	}
 }

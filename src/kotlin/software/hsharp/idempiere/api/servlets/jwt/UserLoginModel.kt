@@ -1,34 +1,37 @@
 package software.hsharp.idempiere.api.servlets.jwt
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.idempiere.common.util.KeyNamePair
 import software.hsharp.api.helpers.jwt.ILogin
 import software.hsharp.api.helpers.jwt.ILoginResponse
 import software.hsharp.api.helpers.jwt.IUserLoginModel
 import software.hsharp.core.models.INameKeyPair
 
+@JsonIgnoreProperties(ignoreUnknown=true)
 data class UserLoginModel(
 		override val loginName: String,
 		override val password: String,
-		val clientId : Int,
-		val roleId : Int,
-		val orgId : Int,
-		val warehouseId : Int,
-		val language : String )
+        override val clientId : Int?,
+        override val roleId : Int?,
+        override val orgId : Int?,
+        override val warehouseId : Int?,
+		override val language : String?
+        )
 	: IUserLoginModel, ILogin {
     constructor() : this("", 
                          "",
-                         0, //System ClientId = 0
-                         -1,
-                         -1,
-                         -1,
+                         null, //System ClientId = 0
+            null,
+            null,
+            null,
                          "en_US")
 						 
     constructor(userName: String, password: String) : this(userName, 
                          password,
-                         0, //System ClientId = 0
-                         -1,
-                         -1,
-                         -1,
+            null, //System ClientId = 0
+            null,
+            null,
+            null,
                          "en_US"
 	)
 }
