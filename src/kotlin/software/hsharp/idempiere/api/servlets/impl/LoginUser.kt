@@ -19,13 +19,29 @@ import javax.ws.rs.core.MediaType
 @Path("authentication")
 class LoginUser {
 
-	protected fun doLogin( username : String, password : String) : UserLoginModelResponse {
+	protected fun doLogin( 
+		username : String, 
+		password : String,
+        clientId : Int?,
+        roleId : Int?,
+        orgId : Int?,
+        warehouseId : Int?,
+		language : String?		
+	) : UserLoginModelResponse {
 		val mapper = ObjectMapper()
 
 		SystemService.system.startup()
 
 		val loginManager = LoginManager()
-		val userLoginModel = UserLoginModel(username, password)
+		val userLoginModel = 
+		  UserLoginModel(
+				username, password,
+				clientId,
+				roleId,
+				orgId,
+				warehouseId,
+				if (language==null) { "en-US" } else { language }
+ 		)
 
 		val result = loginManager.doLogin( userLoginModel )
 		if (result.logged) {
@@ -43,11 +59,25 @@ class LoginUser {
 	@Consumes(MediaType.TEXT_PLAIN)
     fun login1(
 		@QueryParam("username") username : String,
-		@QueryParam("password") password : String
+		@QueryParam("password") password : String,
+        @QueryParam("clientId") clientId : Int?,
+        @QueryParam("roleId") roleId : Int?,
+        @QueryParam("orgId") orgId : Int?,
+        @QueryParam("warehouseId") warehouseId : Int?,
+		@QueryParam("language") language : String?		
+		
 	) : String {
 		try {
 			val mapper = ObjectMapper()
-			return mapper.writeValueAsString(doLogin(username, password));
+			return mapper.writeValueAsString(
+				doLogin(
+					username, password,
+					clientId,
+					roleId,
+					orgId,
+					warehouseId,
+					language
+			));
 		} catch (e:Exception) {
 			val sw = StringWriter()
 			e.printStackTrace(PrintWriter(sw))
@@ -63,11 +93,24 @@ class LoginUser {
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     fun login2(
 		@FormParam("username") username : String,
-		@FormParam("password") password : String
+		@FormParam("password") password : String,
+        @FormParam("clientId") clientId : Int?,
+        @FormParam("roleId") roleId : Int?,
+        @FormParam("orgId") orgId : Int?,
+        @FormParam("warehouseId") warehouseId : Int?,
+		@FormParam("language") language : String?		
 	) : String {
 		try {
 			val mapper = ObjectMapper()
-			return mapper.writeValueAsString(doLogin(username, password));
+			return mapper.writeValueAsString(
+				doLogin(
+					username, password,
+					clientId,
+					roleId,
+					orgId,
+					warehouseId,
+					language
+					));
 		} catch (e:Exception) {
 			val sw = StringWriter()
 			e.printStackTrace(PrintWriter(sw))
