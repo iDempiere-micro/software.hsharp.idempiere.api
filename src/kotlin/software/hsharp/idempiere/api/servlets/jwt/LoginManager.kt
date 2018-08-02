@@ -168,10 +168,7 @@ class LoginManager : ILoginService {
        	Env.setContext(ctx, Env.AD_CLIENT_ID, "" + login.clientId)
 		
 		val clients = loginUtil.getClients(login.loginName, login.password)
-		if (clients == null) {
-			return UserLoginModelResponse()
-		}
-		
+
 		val selectedClientIndex = clients.indexOfFirst { it.Key == login.clientId || clients.count() == 1 }
 
     	val roles =
@@ -185,11 +182,9 @@ class LoginManager : ILoginService {
 				}		
 		
     	val user = UserService.userService.getUser(ctx, login.loginName)
-    	if (user != null) {
-    		Env.setContext(ctx, Env.AD_USER_ID, user.ID )
-    		Env.setContext(ctx, "#AD_User_Name", user.name )
-    		Env.setContext(ctx, "#SalesRep_ID", user.ID )
-    	}
+		Env.setContext(ctx, Env.AD_USER_ID, user.ID )
+		Env.setContext(ctx, "#AD_User_Name", user.name )
+		Env.setContext(ctx, "#SalesRep_ID", user.ID )
 
 		val selectedRoleIndex =
 				if (roles==null) { -1 }
