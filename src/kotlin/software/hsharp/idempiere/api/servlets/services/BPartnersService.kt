@@ -12,7 +12,7 @@ class BPartnersService {
     }
 
     @Reference
-    fun setCustomers(customers : IBusinessPartnersImpl) {
-        bPartnersImpl= customers
+    fun setCustomers(customers: IBusinessPartnersImpl) {
+        bPartnersImpl = customers
     }
 }

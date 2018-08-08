@@ -1,10 +1,6 @@
 package software.hsharp.idempiere.api.servlets.impl
 
-import org.osgi.service.component.annotations.Component
-import org.osgi.service.component.annotations.Reference
-import software.hsharp.api.icommon.IDatabase
 import software.hsharp.business.models.ICategory
-import software.hsharp.business.models.ICustomer
 import software.hsharp.business.services.ICustomerResult
 import software.hsharp.business.services.ICustomersEndpoint
 import software.hsharp.business.services.ICustomersResult
@@ -28,7 +24,7 @@ class Customers : ICustomersEndpoint {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}")
     override fun getCustomerById(@PathParam("id") id: Int): ICustomerResult {
-        return CustomerService.customers.getCustomerById( id )
+        return CustomerService.customers.getCustomerById(id)
     }
 
     @POST
@@ -36,6 +32,6 @@ class Customers : ICustomersEndpoint {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("search")
     override fun getCustomersByAnyCategory(categories: Array<ICategory>): ICustomersResult {
-        return CustomerService.customers.getCustomersByAnyCategory( categories )
+        return CustomerService.customers.getCustomersByAnyCategory(categories)
     }
 }

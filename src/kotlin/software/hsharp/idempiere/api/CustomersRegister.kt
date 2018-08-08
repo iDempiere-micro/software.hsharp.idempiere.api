@@ -6,7 +6,6 @@ import software.hsharp.business.services.ICustomers
 import software.hsharp.business.services.ICustomersServiceRegister
 import software.hsharp.core.services.IServiceRegisterRegister
 
-
 @Component
 class CustomersRegister : ICustomersServiceRegister {
     override val name: String
@@ -25,6 +24,6 @@ class CustomersRegister : ICustomersServiceRegister {
 
     @Reference
     fun setServiceRegisterRegister(serviceRegisterRegister: IServiceRegisterRegister) {
-        serviceRegisterRegister.registerService( this )
+        serviceRegisterRegister.registerService(this)
     }
 }

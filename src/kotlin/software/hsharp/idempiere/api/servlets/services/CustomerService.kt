@@ -12,7 +12,7 @@ class CustomerService {
     }
 
     @Reference
-    fun setCustomers(customers : ICustomersImpl) {
-        customersImpl= customers
+    fun setCustomers(customers: ICustomersImpl) {
+        customersImpl = customers
     }
 }

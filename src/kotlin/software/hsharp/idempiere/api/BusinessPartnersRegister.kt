@@ -24,6 +24,6 @@ class BusinessPartnersRegister : IBusinessPartnersServiceRegister {
 
     @Reference
     fun setServiceRegisterRegister(serviceRegisterRegister: IServiceRegisterRegister) {
-        serviceRegisterRegister.registerService( this )
+        serviceRegisterRegister.registerService(this)
     }
 }
