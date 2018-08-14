@@ -1,13 +1,10 @@
 package software.hsharp.idempiere.api.servlets.jwt
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.compiere.model.I_AD_User
-import org.idempiere.common.exceptions.AdempiereException
 import org.idempiere.common.util.*
 import org.osgi.service.component.annotations.Component
 import org.osgi.service.component.annotations.Reference
 import software.hsharp.api.helpers.jwt.*
-import software.hsharp.api.icommon.IDatabase
 import software.hsharp.idempiere.api.servlets.services.LoginService
 import software.hsharp.idempiere.api.servlets.services.SystemService
 import software.hsharp.idempiere.api.servlets.services.UserService
@@ -158,6 +155,7 @@ class LoginManager : ILoginService {
 
 	fun doLogin( login : ILogin ) : UserLoginModelResponse {
         SystemService.system.startup()
+        Trx.startTrxMonitor(SystemService.system.getThreadPoolExecutor())
 
         val ctx = Env.getCtx()
         val loginUtil = LoginService.loginUtility.init(ctx)
