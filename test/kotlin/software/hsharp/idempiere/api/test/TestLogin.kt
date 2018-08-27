@@ -1,10 +1,9 @@
-import org.junit.Assert
-import org.idempiere.app.Login
-import org.idempiere.app.Micro
+package software.hsharp.idempiere.api.test
+
 import org.idempiere.common.db.Database
 import org.junit.Before
 import org.junit.Test
-import pg.org.compiere.db.DB_PostgreSQL
+import osgi.org.compiere.db.postgresql.provider.DB_PostgreSQLComponent
 import software.hsharp.api.helpers.jwt.ILogin
 import software.hsharp.api.helpers.jwt.ILoginService
 import software.hsharp.idempiere.api.servlets.jwt.LoginManager
@@ -33,10 +32,12 @@ class TestLogin {
 
     @Before
     fun prepare() {
-        SystemService().setSystem(Micro())
-        Database().setDatabase(DB_PostgreSQL())
-        LoginService().setLoginUtility(Login())
-        UserService().setUserService(org.compiere.bo.UserService())
+        DummyService.setup()
+        DummyEventManager.setup()
+        SystemService().setSystem(DummyApp())
+        Database().setDatabase(DB_PostgreSQLComponent())
+        LoginService().setLoginUtility(DummyLogin())
+        UserService().setUserService(DummyUserService())
     }
 
     @Test
